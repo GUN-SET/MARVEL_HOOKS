@@ -1,4 +1,4 @@
-import useHttp from "../hooks/useHttp";
+import {useHttp} from "../hooks/useHttp";
 
 const useMarvelService = () => {
     const {loading, request, error, clearError} = useHttp()
@@ -9,6 +9,11 @@ const useMarvelService = () => {
 
     const getAllCharacters = async (offset = _baseOffset) => {
         const res = await request(`${_apiBase}characters?limit=9&offset=${offset}&${_apiKey}`);
+        return res.data.results.map(_transformCharacter);
+    }
+
+    const getCharacterByName = async (name) => {
+        const res = await request(`${_apiBase}characters?name=${name}&${_apiKey}`);
         return res.data.results.map(_transformCharacter);
     }
 
@@ -28,36 +33,14 @@ const useMarvelService = () => {
     }
 
     const _transformCharacter = (char) => {
-        if (char.description === '') {
-            return {
-                  id: char.id,
-                  name: char.name,
-                  description: char.description = 'Описание отсутсвует',
-                  thumbnail: `${char.thumbnail.path}.${char.thumbnail.extension}`,
-                  homepage: char.urls[0].url,
-                  wiki: char.urls[1].url,
-                  comics: char.comics.items
-            }
-        } else if (char.description.length > 50 ) {
-            return {
-                id: char.id,
-                name: char.name,
-                description: `${char.description.substring(0,100)}...`,
-                thumbnail: `${char.thumbnail.path}.${char.thumbnail.extension}`,
-                homepage: char.urls[0].url,
-                wiki: char.urls[1].url,
-                comics: char.comics.items
-            }
-        } else {
-            return {
-                id: char.id,
-                name: char.name,
-                description: char.description,
-                thumbnail: `${char.thumbnail.path}.${char.thumbnail.extension}`,
-                homepage: char.urls[0].url,
-                wiki: char.urls[1].url,
-                comics: char.comics.items
-            }
+        return {
+            id: char.id,
+            name: char.name,
+            description: char.description ? `${char.description.slice(0, 210)}...` : 'There is no description for this character',
+            thumbnail: `${char.thumbnail.path}.${char.thumbnail.extension}`,
+            homepage: char.urls[0].url,
+            wiki: char.urls[1].url,
+            comics: char.comics.items
         }
     }
 
@@ -73,7 +56,7 @@ const useMarvelService = () => {
         }
     }
 
-    return {loading, error, getAllCharacters, getCharacter, clearError, getAllComics, getComic}
+    return {loading, error, getAllCharacters, getCharacter, clearError, getAllComics, getComic, getCharacterByName}
 }
 
 export default useMarvelService;
